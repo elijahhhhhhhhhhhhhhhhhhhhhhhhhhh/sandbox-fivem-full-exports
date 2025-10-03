@@ -1,3 +1,4 @@
+local utils = require 'client.utils'
 local state = {}
 
 local isActive = false
@@ -12,7 +13,9 @@ function state.setActive(value)
     isActive = value
 
     if value then
-        SendNuiMessage('{"event": "visible", "state": true}')
+        utils.sendReactMessage('visible', true)
+    else
+        utils.sendReactMessage('visible', false)
     end
 end
 

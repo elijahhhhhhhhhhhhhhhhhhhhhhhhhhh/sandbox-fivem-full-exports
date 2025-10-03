@@ -5,7 +5,7 @@ function RegisterCallbacks()
                 return cb(VehToNet(VEHICLE_INSIDE))
             else
                 local playerCoords = GetEntityCoords(PlayerPedId())
-                local maxDistance = 2.0
+                local maxDistance = 5.0
                 local includePlayerVehicle = false
 
                 local data = lib.getClosestVehicle(playerCoords, maxDistance, includePlayerVehicle)

@@ -522,7 +522,7 @@ Config.VehicleMenu = {
         minDist = 3.0,
     },
     {
-        icon = "truck-tow",
+        icon = "truck",
         text = "Request Tow",
         event = "Vehicles:Client:RequestTow",
         data = {},
@@ -554,7 +554,7 @@ Config.VehicleMenu = {
         end,
     },
     {
-        icon = "truck-tow",
+        icon = "truck",
         text = "Tow - Impound",
         event = "Tow:Client:RequestImpound",
         data = {},
@@ -572,7 +572,7 @@ Config.VehicleMenu = {
     },
 
     {
-        icon = "print-magnifying-glass",
+        icon = "magnifying-glass",
         isEnabled = function(data, entityData)
             return exports['sandbox-vehicles']:HasAccess(entityData.entity)
                 and exports['sandbox-vehicles']:UtilsIsCloseToFrontOfVehicle(entityData.entity)
@@ -778,7 +778,7 @@ Config.VehicleMenu = {
         minDist = 10.0,
     },
     {
-        icon = "car-tilt",
+        icon = "car",
         isEnabled = function(data, entityData)
             if DoesEntityExist(entityData.entity) and (not IsVehicleOnAllWheels(entityData.entity)) then
                 return true
@@ -792,7 +792,7 @@ Config.VehicleMenu = {
         jobs = false,
     },
     {
-        icon = "truck-tow",
+        icon = "truck",
         isEnabled = function(data, entityData)
             local veh = entityData.entity
             local vehEnt = Entity(veh)
@@ -812,7 +812,7 @@ Config.VehicleMenu = {
         jobs = false,
     },
     {
-        icon = "truck-tow",
+        icon = "truck",
         isEnabled = function(data, entityData)
             local veh = entityData.entity
             local vehEnt = Entity(veh)

@@ -23,11 +23,26 @@ RegisterNetEvent('Doors:Client:DoorHelper', function()
     end
 end)
 
-AddEventHandler('Targeting:Client:TargetChanged', function(entity)
-    if creationHelper then
-        if entity and IsEntityAnObject(entity) then
-            creationHelperEntity = entity
-            creationHelperEntityCoords = GetEntityCoords(creationHelperEntity)
+CreateThread(function()
+    while true do
+        Wait(100)
+
+        if creationHelper then
+            local hit, coords, entity = lib.raycast.fromCamera(26, 4, 20)
+
+            if entity and IsEntityAnObject(entity) then
+                if entity ~= creationHelperEntity then
+                    if creationHelperEntity then
+                        SetEntityAlpha(creationHelperEntity, 255)
+                    end
+
+                    creationHelperEntity = entity
+                    creationHelperEntityCoords = GetEntityCoords(creationHelperEntity)
+                end
+            elseif creationHelperEntity then
+                SetEntityAlpha(creationHelperEntity, 255)
+                creationHelperEntity = false
+            end
         elseif creationHelperEntity then
             SetEntityAlpha(creationHelperEntity, 255)
             creationHelperEntity = false

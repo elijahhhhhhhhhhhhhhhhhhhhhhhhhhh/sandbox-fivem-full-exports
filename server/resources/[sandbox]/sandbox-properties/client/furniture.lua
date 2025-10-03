@@ -47,7 +47,7 @@ function PlaceFurniture(v)
                             TriggerEvent("Furniture:Client:OnMove", {
                                 id = v.id,
                             })
-                        },
+                        end,
                         canInteract = function()
                             return LocalPlayer.state.furnitureEdit
                         end
@@ -59,7 +59,7 @@ function PlaceFurniture(v)
                             TriggerEvent("Furniture:Client:OnDelete", {
                                 id = v.id,
                             })
-                        },
+                        end,
                         canInteract = function()
                             return LocalPlayer.state.furnitureEdit
                         end
@@ -89,7 +89,8 @@ function PlaceFurniture(v)
                         canInteract = function(data)
                             if _insideProperty and _propertiesLoaded then
                                 local property = _properties[_insideProperty.id]
-                                return (property.keys ~= nil and property.keys[LocalPlayer.state.Character:GetData("ID")] ~= nil and (property.keys[LocalPlayer.state.Character:GetData("ID")].Permissions?.stash or property.keys[LocalPlayer.state.Character:GetData("ID")].Owner)) or
+                                local key = property.keys and property.keys[LocalPlayer.state.Character:GetData("ID")]
+                                return (key ~= nil and (((key.Permissions and key.Permissions.stash) and true) or key.Owner)) or
                                     LocalPlayer.state.onDuty == "police"
                             end
                         end,
@@ -167,7 +168,7 @@ function PlaceFurniture(v)
 
         Wait(1)
     else
-        print("Failed to Load Model: " .. v.model)
+        exports["sandbox-hud"]:NotifError("Failed to Load Model: " .. v.model)
     end
 end
 
@@ -245,13 +246,13 @@ function CycleFurniture(direction)
 
     if direction then
         if _furnitureCategoryCurrent < #_furnitureCategory then
-            _furnitureCategoryCurrent += 1
+            _furnitureCategoryCurrent = _furnitureCategoryCurrent + 1
         else
             return
         end
     else
         if _furnitureCategoryCurrent > 1 then
-            _furnitureCategoryCurrent -= 1
+            _furnitureCategoryCurrent = _furnitureCategoryCurrent - 1
         else
             return
         end
@@ -264,7 +265,7 @@ function CycleFurniture(direction)
     local fData = FurnitureConfig[fKey]
     if fData then
         exports['sandbox-hud']:InfoOverlayShow(fData.name,
-            string.format("Category: %s | Model: %s", FurnitureCategories[fData.cat]?.name or "Unknown", fKey))
+            string.format("Category: %s | Model: %s", (FurnitureCategories[fData.cat] and FurnitureCategories[fData.cat].name or "Unknown"), fKey))
     end
     exports['sandbox-objects']:PlacerStart(GetHashKey(fKey), "Furniture:Client:Place", {}, true,
         "Furniture:Client:Cancel", true, true)

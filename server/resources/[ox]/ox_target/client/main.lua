@@ -5,12 +5,22 @@ lib.locale()
 local utils = require 'client.utils'
 local state = require 'client.state'
 local options = require 'client.api'.getTargetOptions()
+local config = require 'config'
 
 require 'client.debug'
 require 'client.defaults'
 require 'client.compat.qtarget'
 
-local SendNuiMessage = SendNuiMessage
+local function toggleNuiFrame(shouldShow)
+    SetNuiFocus(shouldShow, shouldShow)
+    utils.sendReactMessage('setVisible', shouldShow)
+end
+
+RegisterNUICallback('hideFrame', function(_, cb)
+    toggleNuiFrame(false)
+    cb({})
+end)
+
 local GetEntityCoords = GetEntityCoords
 local GetEntityType = GetEntityType
 local HasEntityClearLosToEntity = HasEntityClearLosToEntity
@@ -33,6 +43,21 @@ local toggleHotkey = GetConvarInt('ox_target:toggleHotkey', 0) == 1
 local mouseButton = GetConvarInt('ox_target:leftClick', 1) == 1 and 24 or 25
 local debug = GetConvarInt('ox_target:debug', 0) == 1
 local vec0 = vec3(0, 0, 0)
+
+local function getTargetIcon(entityType, entityHit)
+    if entityType == 1 then
+        if IsPedAPlayer(entityHit) then
+            return config.icons.player
+        else
+            return config.icons.ped
+        end
+    elseif entityType == 2 then
+        local vehicleClass = GetVehicleClass(entityHit)
+        return config.vehicleIcons[vehicleClass] or config.icons.entity
+    else
+        return config.icons.entity
+    end
+end
 
 ---@param option OxTargetOption
 ---@param distance number
@@ -231,7 +256,7 @@ local function startTargeting()
         end
 
         if hasTarget and (zonesChanged or entityChanged and hasTarget > 1) then
-            SendNuiMessage('{"event": "leftTarget"}')
+            utils.sendReactMessage('leftTarget')
 
             if entityChanged then options:wipe() end
 
@@ -298,7 +323,7 @@ local function startTargeting()
             if hasTarget and hidden == totalOptions then
                 if hasTarget and hasTarget ~= 1 then
                     hasTarget = false
-                    SendNuiMessage('{"event": "leftTarget"}')
+                    utils.sendReactMessage('leftTarget')
                 end
             elseif menuChanged or hasTarget ~= 1 and hidden ~= totalOptions then
                 hasTarget = options.size
@@ -314,11 +339,11 @@ local function startTargeting()
                         })
                 end
 
-                SendNuiMessage(json.encode({
-                    event = 'setTarget',
+                utils.sendReactMessage('setTarget', {
                     options = options,
                     zones = zones,
-                }, { sort_keys = true }))
+                    targetIcon = getTargetIcon(entityType, entityHit),
+                })
             end
 
             menuChanged = false
@@ -340,7 +365,7 @@ local function startTargeting()
     end
 
     state.setNuiFocus(false)
-    SendNuiMessage('{"event": "visible", "state": false}')
+    utils.sendReactMessage('visible', false)
     table.wipe(currentTarget)
     options:wipe()
 

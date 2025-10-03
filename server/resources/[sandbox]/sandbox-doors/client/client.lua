@@ -124,13 +124,14 @@ function CreateElevatorFloorTarget(zoneData, elevatorId, floorId, zoneId)
 						elevator = elevatorId,
 						floor = floorId,
 					})
-				},
+				end,
 				distance = 3.0,
 				canInteract = function()
 					return (
-						not LocalPlayer.state.Character:GetData("ICU")
-						or LocalPlayer.state.Character:GetData("ICU").Released
-					) and not LocalPlayer.state.isCuffed
+						(not LocalPlayer.state.Character:GetData("ICU")
+							or LocalPlayer.state.Character:GetData("ICU").Released)
+						and not LocalPlayer.state.isCuffed
+					)
 				end,
 			},
 		}
@@ -265,46 +266,50 @@ function UselessWrapper()
 	return Citizen.Await(p)
 end
 
-AddEventHandler("Targeting:Client:TargetChanged", function(entity)
-	if DOORS_STATE and entity and IsEntityAnObject(entity) then
-		local allSystemDoors = UselessWrapper()
-		if not allSystemDoors then
-			return
-		end
+CreateThread(function()
+	while true do
+		Wait(500)
 
-		for k, v in ipairs(allSystemDoors) do
-			if v[2] == entity then
-				local doorId = v[1]
-				if DOORS_STATE[doorId] then
-					_lookingAtDoor = doorId
-					_lookingAtDoorEntity = v[2]
-					_lookingAtDoorCoords = GetEntityCoords(v[2])
-					_lookingAtDoorRadius = DOORS_STATE[doorId].maxDist or 2.0
-					_lookingAtDoorSpecial = DOORS_STATE[doorId].special
+		if LocalPlayer.state.loggedIn and DOORS_STATE then
+			local ped = PlayerPedId()
+			local pedCoords = GetEntityCoords(ped)
+			local closestDoor = nil
+			local closestDist = 999.0
 
-					if not _lookingAtDoorSpecial then
-						CreateThread(function()
-							while _lookingAtDoor == doorId do
-								local dist = #(_lookingAtDoorCoords - GetEntityCoords(GLOBAL_PED))
-								local canSee = dist <= _lookingAtDoorRadius and CheckDoorAuth(_lookingAtDoor)
-								if not _showingDoorInfo and canSee then
-									StartShowingDoorInfo(_lookingAtDoor)
-								elseif _showingDoorInfo and not canSee then
-									StopShowingDoorInfo()
-								end
-								Wait(500)
-							end
-							StopShowingDoorInfo()
-						end)
+			for doorId, doorData in pairs(DOORS_STATE) do
+				if not doorData.special then
+					local dist = #(pedCoords - vector3(doorData.coords.x, doorData.coords.y, doorData.coords.z))
+					local maxDist = doorData.maxDist or 2.0
+
+					if dist <= maxDist and dist < closestDist then
+						closestDoor = doorId
+						closestDist = dist
 					end
 				end
 			end
+
+			if closestDoor then
+				if closestDoor ~= _lookingAtDoor then
+					_lookingAtDoor = closestDoor
+					_lookingAtDoorCoords = vector3(DOORS_STATE[closestDoor].coords.x, DOORS_STATE[closestDoor].coords.y,
+						DOORS_STATE[closestDoor].coords.z)
+					_lookingAtDoorRadius = DOORS_STATE[closestDoor].maxDist or 2.0
+					_lookingAtDoorSpecial = DOORS_STATE[closestDoor].special
+				end
+
+				local canSee = CheckDoorAuth(closestDoor)
+				if not _showingDoorInfo and canSee then
+					StartShowingDoorInfo(closestDoor)
+				elseif _showingDoorInfo and not canSee then
+					StopShowingDoorInfo()
+				end
+			elseif _lookingAtDoor then
+				_lookingAtDoor = false
+				_lookingAtDoorEntity = nil
+				_lookingAtDoorCoords = nil
+				StopShowingDoorInfo()
+			end
 		end
-	elseif _lookingAtDoor then
-		_lookingAtDoor = false
-		_lookingAtDoorEntity = nil
-		_lookingAtDoorCoords = nil
-		StopShowingDoorInfo()
 	end
 end)
 

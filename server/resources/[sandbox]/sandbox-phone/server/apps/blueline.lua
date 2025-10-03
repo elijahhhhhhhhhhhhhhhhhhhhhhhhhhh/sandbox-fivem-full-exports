@@ -280,15 +280,16 @@ AddEventHandler("Phone:Server:RegisterCallbacks", function()
 				doc
 			)
 
-			table.insert(_tracks, data)
-			TriggerClientEvent("Phone:Client:Blueline:StoreSingleTrack", -1, doc.id, {
+			local trackData = {
 				id = doc.id,
 				Name = data.Name,
 				Distance = data.Distance,
 				Type = data.Type,
 				Checkpoints = data.Checkpoints,
 				created_by = alias,
-			})
+			}
+			table.insert(_tracks, trackData)
+			TriggerClientEvent("Phone:Client:Blueline:StoreSingleTrack", -1, doc.id, trackData)
 			cb(true)
 		else
 			cb(false)
